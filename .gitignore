@@ -51,6 +51,7 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Planejamento e agentes locais
+# Planejamento e notas locais
 AGENTS.md
 task.md
+docs/

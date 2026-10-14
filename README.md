@@ -33,12 +33,6 @@ improve_traffic/
 │   ├── test.csv                 # 47.999 corridas brutas de teste
 │   ├── weather.csv              # 366 registros climáticos diários de NYC
 │   └── processed/               # Parquets intermediários e submission.csv
-├── docs/
-│   ├── 01-data-discovery-and-contracts.md
-│   ├── 02-PRD-and-specs.md
-│   ├── 03-architecture-and-schema.md
-│   ├── 05-implementation-plan.md
-│   └── adr/                     # Registros de Decisão Arquitetural (ADRs 0001 a 0003)
 ├── models/                      # Artefatos treinados salvos em Joblib
 ├── report/
 │   ├── _quarto.yml              # Configuração do site Quarto (tema, idioma e navbar)
