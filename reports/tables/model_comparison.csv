@@ -1,0 +1,5 @@
+Modelo,RMSLE,RMSE (min),MAE (min),R²
+LightGBM,0.3397,5.39,3.25,0.7934
+XGBoost,0.3425,5.37,3.27,0.7946
+Random_Forest,0.3645,5.69,3.51,0.7695
+Ridge_Baseline,0.5396,11.51,5.83,0.0565

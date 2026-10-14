@@ -22,6 +22,7 @@ models/*.bin
 reports/figures/*.png
 reports/figures/*.svg
 reports/tables/*.csv
+!reports/tables/model_comparison.csv
 !reports/figures/.gitkeep
 !reports/tables/.gitkeep
 
