@@ -1,0 +1,15 @@
+name: improve-traffic
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas>=2.2
+  - numpy>=1.26
+  - scipy
+  - scikit-learn>=1.4
+  - lightgbm
+  - xgboost
+  - matplotlib
+  - seaborn
+  - jupyterlab
+  - ipykernel

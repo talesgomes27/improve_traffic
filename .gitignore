@@ -1,0 +1,55 @@
+# Python bytecode e ambientes
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+conda-env/
+
+# Dados processados e intermediários (preservar dados brutos em data/)
+data/processed/
+data/*.parquet
+
+# Modelos treinados pesados
+models/*.joblib
+models/*.pkl
+models/*.bin
+
+# Logs e relatórios temporários
+reports/figures/*.png
+reports/figures/*.svg
+reports/tables/*.csv
+!reports/figures/.gitkeep
+!reports/tables/.gitkeep
+
+# Jupyter Notebooks e checkpoints
+notebook.ipynb
+*.ipynb
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# R history
+.Rhistory
+*.Rhistory
+
+# Quarto build e cache
+.quarto/
+_site/
+report/_site/
+
+# Testes e linters
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Planejamento e agentes locais
+AGENTS.md
+task.md

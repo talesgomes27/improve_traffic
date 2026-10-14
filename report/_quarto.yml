@@ -1,0 +1,33 @@
+project:
+  type: site
+  output-dir: _site
+
+website:
+  title: "NYC Traffic & Weather Analytics"
+  navbar:
+    background: primary
+    left:
+      - href: index.qmd
+        text: Relatório Executivo e Técnico
+    right:
+      - icon: github
+        href: https://github.com/talesgomes27/improve_traffic
+        text: Repositório
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    lang: pt-BR
+    title-block-banner: "#0f172a"
+    title-block-banner-color: "#f8fafc"
+    toc: true
+    toc-depth: 3
+    toc-title: "Neste Relatório"
+    number-sections: true
+    code-fold: true
+    code-summary: "Exibir código"
+    smooth-scroll: true
+    highlight-style: github
+    fig-align: center
+    fig-responsive: true
