@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Tales">
+
+<title>Previsão de Tráfego e Duração de Viagens em Nova York – NYC Traffic &amp; Weather Analytics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-5c1318cf63eba56dbef7ba16bc7d56f5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-4eb4af346aaf92ea5543d185169931cc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: #f8fafc;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: #f8fafc;
+background: #0f172a;
+      }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">NYC Traffic &amp; Weather Analytics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Procurar"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Alternar de navegação" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Relatório Executivo e Técnico</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/talesgomes27/improve_traffic"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text">Repositório</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Previsão de Tráfego e Duração de Viagens em Nova York</h1>
+            <p class="subtitle lead">Análise Integrada de Mobilidade Urbana e Condições Meteorológicas de 2016</p>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Autor</div>
+      <div class="quarto-title-meta-contents">
+               <p>Tales </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Data de Publicação</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">14 de outubro de 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Neste Relatório</h2>
+   
+  <ul>
+  <li><a href="#ask-pergunta-de-negócio-e-contexto" id="toc-ask-pergunta-de-negócio-e-contexto" class="nav-link active" data-scroll-target="#ask-pergunta-de-negócio-e-contexto"><span class="header-section-number">1</span> Ask (Pergunta de Negócio e Contexto)</a>
+  <ul class="collapse">
+  <li><a href="#questões-centrais-da-análise" id="toc-questões-centrais-da-análise" class="nav-link" data-scroll-target="#questões-centrais-da-análise"><span class="header-section-number">1.1</span> Questões Centrais da Análise</a></li>
+  <li><a href="#métrica-alvo-de-avaliação-fundamentação-estatística" id="toc-métrica-alvo-de-avaliação-fundamentação-estatística" class="nav-link" data-scroll-target="#métrica-alvo-de-avaliação-fundamentação-estatística"><span class="header-section-number">1.2</span> Métrica Alvo de Avaliação: Fundamentação Estatística</a></li>
+  </ul></li>
+  <li><a href="#prepare-auditoria-técnica-e-descoberta-de-dados" id="toc-prepare-auditoria-técnica-e-descoberta-de-dados" class="nav-link" data-scroll-target="#prepare-auditoria-técnica-e-descoberta-de-dados"><span class="header-section-number">2</span> Prepare (Auditoria Técnica e Descoberta de Dados)</a>
+  <ul class="collapse">
+  <li><a href="#catálogo-e-estrutura-das-fontes" id="toc-catálogo-e-estrutura-das-fontes" class="nav-link" data-scroll-target="#catálogo-e-estrutura-das-fontes"><span class="header-section-number">2.1</span> Catálogo e Estrutura das Fontes</a></li>
+  <li><a href="#correção-das-unidades-meteorológicas" id="toc-correção-das-unidades-meteorológicas" class="nav-link" data-scroll-target="#correção-das-unidades-meteorológicas"><span class="header-section-number">2.2</span> Correção das Unidades Meteorológicas</a></li>
+  </ul></li>
+  <li><a href="#process-limpeza-saneamento-e-engenharia-de-atributos" id="toc-process-limpeza-saneamento-e-engenharia-de-atributos" class="nav-link" data-scroll-target="#process-limpeza-saneamento-e-engenharia-de-atributos"><span class="header-section-number">3</span> Process (Limpeza, Saneamento e Engenharia de Atributos)</a>
+  <ul class="collapse">
+  <li><a href="#saneamento-de-ruídos-operacionais" id="toc-saneamento-de-ruídos-operacionais" class="nav-link" data-scroll-target="#saneamento-de-ruídos-operacionais"><span class="header-section-number">3.1</span> Saneamento de Ruídos Operacionais</a></li>
+  <li><a href="#engenharia-de-atributos-vetorizada" id="toc-engenharia-de-atributos-vetorizada" class="nav-link" data-scroll-target="#engenharia-de-atributos-vetorizada"><span class="header-section-number">3.2</span> Engenharia de Atributos Vetorizada</a></li>
+  </ul></li>
+  <li><a href="#analyze-modelagem-preditiva-e-validação-temporal" id="toc-analyze-modelagem-preditiva-e-validação-temporal" class="nav-link" data-scroll-target="#analyze-modelagem-preditiva-e-validação-temporal"><span class="header-section-number">4</span> Analyze (Modelagem Preditiva e Validação Temporal)</a>
+  <ul class="collapse">
+  <li><a href="#estratégia-de-validação-temporal" id="toc-estratégia-de-validação-temporal" class="nav-link" data-scroll-target="#estratégia-de-validação-temporal"><span class="header-section-number">4.1</span> Estratégia de Validação Temporal</a></li>
+  <li><a href="#comparação-multimétrica-dos-modelos-candidatos" id="toc-comparação-multimétrica-dos-modelos-candidatos" class="nav-link" data-scroll-target="#comparação-multimétrica-dos-modelos-candidatos"><span class="header-section-number">4.2</span> Comparação Multimétrica dos Modelos Candidatos</a></li>
+  </ul></li>
+  <li><a href="#share-interpretação-e-visualizações-diagnósticas" id="toc-share-interpretação-e-visualizações-diagnósticas" class="nav-link" data-scroll-target="#share-interpretação-e-visualizações-diagnósticas"><span class="header-section-number">5</span> Share (Interpretação e Visualizações Diagnósticas)</a>
+  <ul class="collapse">
+  <li><a href="#importância-das-variáveis-por-ganho-gain" id="toc-importância-das-variáveis-por-ganho-gain" class="nav-link" data-scroll-target="#importância-das-variáveis-por-ganho-gain"><span class="header-section-number">5.1</span> Importância das Variáveis por Ganho (Gain)</a></li>
+  <li><a href="#qualidade-dos-resíduos-e-calibração-das-previsões" id="toc-qualidade-dos-resíduos-e-calibração-das-previsões" class="nav-link" data-scroll-target="#qualidade-dos-resíduos-e-calibração-das-previsões"><span class="header-section-number">5.2</span> Qualidade dos Resíduos e Calibração das Previsões</a></li>
+  <li><a href="#impacto-das-condições-climáticas-no-trânsito" id="toc-impacto-das-condições-climáticas-no-trânsito" class="nav-link" data-scroll-target="#impacto-das-condições-climáticas-no-trânsito"><span class="header-section-number">5.3</span> Impacto das Condições Climáticas no Trânsito</a></li>
+  <li><a href="#dinâmica-temporal-e-horários-de-pico" id="toc-dinâmica-temporal-e-horários-de-pico" class="nav-link" data-scroll-target="#dinâmica-temporal-e-horários-de-pico"><span class="header-section-number">5.4</span> Dinâmica Temporal e Horários de Pico</a></li>
+  <li><a href="#rotas-de-aeroportos-vs.-viagens-urbanas" id="toc-rotas-de-aeroportos-vs.-viagens-urbanas" class="nav-link" data-scroll-target="#rotas-de-aeroportos-vs.-viagens-urbanas"><span class="header-section-number">5.5</span> Rotas de Aeroportos vs.&nbsp;Viagens Urbanas</a></li>
+  <li><a href="#análise-espacial-e-fator-de-circuidade-viária" id="toc-análise-espacial-e-fator-de-circuidade-viária" class="nav-link" data-scroll-target="#análise-espacial-e-fator-de-circuidade-viária"><span class="header-section-number">5.6</span> Análise Espacial e Fator de Circuidade Viária</a></li>
+  </ul></li>
+  <li><a href="#act-recomendações-práticas-e-aplicação-operacional" id="toc-act-recomendações-práticas-e-aplicação-operacional" class="nav-link" data-scroll-target="#act-recomendações-práticas-e-aplicação-operacional"><span class="header-section-number">6</span> Act (Recomendações Práticas e Aplicação Operacional)</a>
+  <ul class="collapse">
+  <li><a href="#desvio-estratégico-das-avenidas-centrais-nos-picos-da-tarde" id="toc-desvio-estratégico-das-avenidas-centrais-nos-picos-da-tarde" class="nav-link" data-scroll-target="#desvio-estratégico-das-avenidas-centrais-nos-picos-da-tarde"><span class="header-section-number">6.1</span> Desvio Estratégico das Avenidas Centrais nos Picos da Tarde</a></li>
+  <li><a href="#janelas-de-margem-de-segurança-para-aeroportos" id="toc-janelas-de-margem-de-segurança-para-aeroportos" class="nav-link" data-scroll-target="#janelas-de-margem-de-segurança-para-aeroportos"><span class="header-section-number">6.2</span> Janelas de Margem de Segurança para Aeroportos</a></li>
+  </ul></li>
+  <li><a href="#reprodutibilidade-e-artefatos-finais" id="toc-reprodutibilidade-e-artefatos-finais" class="nav-link" data-scroll-target="#reprodutibilidade-e-artefatos-finais"><span class="header-section-number">7</span> Reprodutibilidade e Artefatos Finais</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="ask-pergunta-de-negócio-e-contexto" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="ask-pergunta-de-negócio-e-contexto"><span class="header-section-number">1</span> Ask (Pergunta de Negócio e Contexto)</h2>
+<p>Gerenciar o tráfego em redes viárias de alta densidade exige previsibilidade. Em Nova York, a concentração espacial de edifícios e a geometria das pontes e túneis tornam a velocidade média altamente sensível a choques de demanda e intempéries climáticas.</p>
+<p>O objetivo deste projeto é duplo. Primeiro, identificar em que medida fatores climáticos diários e horários de pico comercial degradam a fluidez urbana. Segundo, estimar com precisão o tempo total de deslocamento de corridas de táxi amarelo (<code>trip_duration</code>), gerando subsídios quantitativos para planejamento de trânsito e despacho operacional de veículos.</p>
+<section id="questões-centrais-da-análise" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="questões-centrais-da-análise"><span class="header-section-number">1.1</span> Questões Centrais da Análise</h3>
+<ol type="1">
+<li>Em que magnitude chuvas fortes ou nevascas reduzem a velocidade média das viagens em comparação com dias de clima seco?</li>
+<li>Qual é a amplificação no tempo de percurso nos picos comerciais da manhã (07h-09h) e da tarde (16h-19h) em dias úteis versus finais de semana?</li>
+<li>As viagens com destino aos aeroportos John F. Kennedy (JFK) e LaGuardia (LGA) apresentam dinâmicas de velocidade distintas dos trajetos intramunicipais?</li>
+</ol>
+</section>
+<section id="métrica-alvo-de-avaliação-fundamentação-estatística" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="métrica-alvo-de-avaliação-fundamentação-estatística"><span class="header-section-number">1.2</span> Métrica Alvo de Avaliação: Fundamentação Estatística</h3>
+<p>A escolha da métrica de avaliação não é apenas um detalhe computacional; ela define a função de perda que orienta todo o aprendizado de máquina. A duração de viagens urbanas (<code>trip_duration</code>) apresenta forte <strong>assimetria positiva (cauda longa à direita)</strong>: enquanto a mediana situa-se em 11,0 minutos (661 segundos), a cauda estende-se até 120 minutos (7.200 segundos).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Por que o RMSLE foi escolhido em vez do RMSE tradicional em segundos?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><p><strong>Vulnerabilidade do RMSE a Outliers de Cauda Longa</strong>: O RMSE tradicional calcula o desvio quadrático sobre a escala absoluta em segundos: <span class="math display">\[\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2}\]</span> Em decorrência do expoente quadrático, um erro de 10 minutos (600 s) em uma viagem atípica de 80 minutos contribui com <span class="math inline">\(600^2 = 360.000\)</span> para a soma dos erros. Em contrapartida, um erro de 2 minutos (120 s) em uma viagem comum de 8 minutos contribui com apenas <span class="math inline">\(120^2 = 14.400\)</span>. O erro da viagem longa recebe um peso <strong>25 vezes maior</strong>, fazendo com que o algoritmo sacrifique o ajuste de 90% das viagens urbanas comuns para tentar aproximar poucas viagens extremas.</p></li>
+<li><p><strong>Penalização Proporcional e Invariância de Escala do RMSLE</strong>: Na mobilidade urbana, um atraso de 5 minutos sobre um trajeto de 10 minutos representa um erro relativo de <strong>50%</strong> (grave para o passageiro). Já um atraso de 5 minutos em uma travessia intermunicipal de 60 minutos representa uma oscilação de apenas <strong>8,3%</strong> (perfeitamente plausível dentro do ruído natural do trânsito). O RMSE e o MAE tratam ambos os casos com a mesma penalidade absoluta (300 segundos). O <strong>RMSLE (Root Mean Squared Logarithmic Error)</strong> resolve essa distorção: <span class="math display">\[\text{RMSLE} = \sqrt{\frac{1}{n} \sum_{i=1}^n \left( \log(y_i + 1) - \log(\hat{y}_i + 1) \right)^2} = \sqrt{\frac{1}{n} \sum_{i=1}^n \left( \log\left( \frac{y_i + 1}{\hat{y}_i + 1} \right) \right)^2}\]</span> Pela propriedade dos logaritmos (<span class="math inline">\(\log a - \log b = \log(a/b)\)</span>), o RMSLE avalia a <strong>razão relativa</strong> entre o tempo real e o tempo previsto, conferindo tratamento equilibrado a viagens de curta, média e longa distância.</p></li>
+<li><p><strong>Otimização Direta na Modelagem</strong>: Ao treinar os regressores (LightGBM e XGBoost) sobre o alvo transformado <span class="math inline">\(z = \log(1 + y)\)</span>, a função de perda padrão dos algoritmos (MSE sobre <span class="math inline">\(z\)</span>) torna-se identicamente igual ao quadrado do RMSLE sobre <span class="math inline">\(y\)</span>. O modelo otimiza matematicamente o RMSLE de forma nativa e convexa durante todo o treinamento.</p></li>
+</ol>
+</div>
+</div>
+<p>Como métrica complementar para comunicação executiva, reportamos também o <strong>MAE (Mean Absolute Error) em minutos</strong>, permitindo que gestores operacionais interpretem o desvio médio esperado no relógio.</p>
+<hr>
+</section>
+</section>
+<section id="prepare-auditoria-técnica-e-descoberta-de-dados" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="prepare-auditoria-técnica-e-descoberta-de-dados"><span class="header-section-number">2</span> Prepare (Auditoria Técnica e Descoberta de Dados)</h2>
+<p>Os dados utilizados combinam dois conjuntos principais: o histórico operacional de táxis amarelos fornecido pela New York City Taxi and Limousine Commission (TLC) e medições meteorológicas diárias do Central Park referentes ao ano bissexto de 2016.</p>
+<section id="catálogo-e-estrutura-das-fontes" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="catálogo-e-estrutura-das-fontes"><span class="header-section-number">2.1</span> Catálogo e Estrutura das Fontes</h3>
+<div class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Exibir código</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>summary_df <span class="op">=</span> pd.DataFrame([</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"Fonte"</span>: <span class="st">"train.csv"</span>, <span class="st">"Registros"</span>: <span class="dv">60554</span>, <span class="st">"Colunas"</span>: <span class="dv">11</span>, <span class="st">"Janela Temporal"</span>: <span class="st">"01/01/2016 a 30/06/2016"</span>, <span class="st">"Papel"</span>: <span class="st">"Treino e Validação"</span>},</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"Fonte"</span>: <span class="st">"test.csv"</span>, <span class="st">"Registros"</span>: <span class="dv">47999</span>, <span class="st">"Colunas"</span>: <span class="dv">9</span>, <span class="st">"Janela Temporal"</span>: <span class="st">"16/06/2016 a 30/06/2016"</span>, <span class="st">"Papel"</span>: <span class="st">"Inferência Final"</span>},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"Fonte"</span>: <span class="st">"weather.csv"</span>, <span class="st">"Registros"</span>: <span class="dv">366</span>, <span class="st">"Colunas"</span>: <span class="dv">7</span>, <span class="st">"Janela Temporal"</span>: <span class="st">"01/01/2016 a 31/12/2016"</span>, <span class="st">"Papel"</span>: <span class="st">"Enriquecimento Climático"</span>},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>summary_df</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="tbl-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabela&nbsp;1: Estrutura dos Conjuntos de Dados Brutos
+</figcaption>
+<div aria-describedby="tbl-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe cell caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Fonte</th>
+<th data-quarto-table-cell-role="th">Registros</th>
+<th data-quarto-table-cell-role="th">Colunas</th>
+<th data-quarto-table-cell-role="th">Janela Temporal</th>
+<th data-quarto-table-cell-role="th">Papel</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>train.csv</td>
+<td>60554</td>
+<td>11</td>
+<td>01/01/2016 a 30/06/2016</td>
+<td>Treino e Validação</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>test.csv</td>
+<td>47999</td>
+<td>9</td>
+<td>16/06/2016 a 30/06/2016</td>
+<td>Inferência Final</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>weather.csv</td>
+<td>366</td>
+<td>7</td>
+<td>01/01/2016 a 31/12/2016</td>
+<td>Enriquecimento Climático</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</section>
+<section id="correção-das-unidades-meteorológicas" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="correção-das-unidades-meteorológicas"><span class="header-section-number">2.2</span> Correção das Unidades Meteorológicas</h3>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Correção Crítica de Domínio: Unidades Imperiais vs.&nbsp;Documentação
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A documentação preliminar informava que as temperaturas estavam em Celsius e as precipitações em milímetros. A auditoria técnica do Gate 1 refutou essa premissa através do confronto com registros meteorológicos históricos de Nova York em 2016: - Em <strong>14 de fevereiro de 2016</strong>, a base registra mínima de -1 e máxima de 15. Esse evento coincide com o vórtice polar histórico registrado no Central Park com termômetros a <strong>-1°F (-18,3°C)</strong>. - Em <strong>23 de janeiro de 2016</strong>, a base registra queda de neve de 27.3. Essa data marcou a nevasca histórica Jonas, com acúmulo de exatamente <strong>27,3 polegadas (693,4 mm)</strong> de neve. Se fossem milímetros, representaria meros 2,7 cm de neve, incapazes de paralisar a malha viária da cidade.</p>
+<p>Conclusão: os dados brutos de clima foram coletados no padrão imperial americano (°F e polegadas). O pipeline converte todas as grandezas para o Sistema Internacional (°C e mm) antes das análises.</p>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="process-limpeza-saneamento-e-engenharia-de-atributos" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="process-limpeza-saneamento-e-engenharia-de-atributos"><span class="header-section-number">3</span> Process (Limpeza, Saneamento e Engenharia de Atributos)</h2>
+<section id="saneamento-de-ruídos-operacionais" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="saneamento-de-ruídos-operacionais"><span class="header-section-number">3.1</span> Saneamento de Ruídos Operacionais</h3>
+<p>No conjunto de treino, foram filtradas corridas que representam anomalias de operação do taxímetro: - <strong>Corridas com menos de 60 segundos</strong>: 204 ocorrências decorrentes de cancelamentos imediatos ou erros de acionamento do aparelho. - <strong>Corridas com mais de 7.200 segundos (2 horas)</strong>: 86 viagens, incluindo 77 registros com cerca de 24 horas (86.350 segundos), fruto de taxímetros esquecidos ligados pelo motorista ao final do turno.</p>
+<p>O filtro preservou <strong>60.099 corridas</strong> representativas do fluxo de trânsito real (455 ruídos eliminados). No conjunto de teste (<code>test.csv</code>), todos os <strong>47.999 registros</strong> foram rigorosamente preservados para inferência.</p>
+</section>
+<section id="engenharia-de-atributos-vetorizada" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="engenharia-de-atributos-vetorizada"><span class="header-section-number">3.2</span> Engenharia de Atributos Vetorizada</h3>
+<p>A partir das coordenadas geográficas e dos timestamps, derivamos preditores espaciais e temporais: - <strong>Distância Haversine</strong>: Reta geodésica sobre a curvatura da Terra em quilômetros. - <strong>Distância Manhattan</strong>: Distância retilínea ortogonal ao longo da malha de avenidas e ruas de Nova York. - <strong>Ângulo de Deslocamento (Bearing)</strong>: Azimute vetorial da corrida entre 0° e 360°. - <strong>Indicadores de Horário de Pico</strong>: Faixas de tráfego intenso da manhã (07h às 09h) e da tarde (16h às 19h) restritas a dias úteis. - <strong>Polígonos de Aeroportos</strong>: Bounding boxes geográficas para identificar partidas ou chegadas em JFK e LaGuardia. - <strong>Interações Climáticas</strong>: Indicadores binários para dias chuvosos (<code>is_rainy</code>), com neve no solo (<code>has_snow_ground</code>) e eventos climáticos severos (<code>is_severe_weather</code>).</p>
+<hr>
+</section>
+</section>
+<section id="analyze-modelagem-preditiva-e-validação-temporal" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="analyze-modelagem-preditiva-e-validação-temporal"><span class="header-section-number">4</span> Analyze (Modelagem Preditiva e Validação Temporal)</h2>
+<section id="estratégia-de-validação-temporal" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="estratégia-de-validação-temporal"><span class="header-section-number">4.1</span> Estratégia de Validação Temporal</h3>
+<p>O conjunto de teste concentra-se estritamente na segunda quinzena de junho de 2016 (início do verão). Uma validação cruzada aleatória com embaralhamento causaria vazamento de dados futuros para o passado e mascararia a sazonalidade.</p>
+<p>Definimos uma partição com corte estrito em 16 de junho de 2016: - <strong>Treino de Modelagem</strong>: Viagens de 01/01 a 15/06/2016 (55.388 amostras). - <strong>Validação de Modelagem</strong>: Viagens de 16/06 a 30/06/2016 (4.711 amostras).</p>
+</section>
+<section id="comparação-multimétrica-dos-modelos-candidatos" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="comparação-multimétrica-dos-modelos-candidatos"><span class="header-section-number">4.2</span> Comparação Multimétrica dos Modelos Candidatos</h3>
+<p>Quatro algoritmos foram ajustados sobre o alvo transformado <span class="math inline">\(z = \log(1 + y)\)</span> utilizando as 28 variáveis selecionadas. A tabela abaixo apresenta o desempenho comparativo em quatro métricas independentes:</p>
+<div class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Exibir código</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>metrics_df <span class="op">=</span> pd.read_csv(<span class="st">"../reports/tables/model_comparison.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>metrics_df</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="tbl-models" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabela&nbsp;2: Desempenho dos Modelos na Validação Temporal (Segunda Quinzena de Junho)
+</figcaption>
+<div aria-describedby="tbl-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe cell caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Modelo</th>
+<th data-quarto-table-cell-role="th">RMSLE</th>
+<th data-quarto-table-cell-role="th">RMSE (min)</th>
+<th data-quarto-table-cell-role="th">MAE (min)</th>
+<th data-quarto-table-cell-role="th">R²</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>LightGBM</td>
+<td>0.3397</td>
+<td>5.39</td>
+<td>3.25</td>
+<td>0.7934</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>XGBoost</td>
+<td>0.3425</td>
+<td>5.37</td>
+<td>3.27</td>
+<td>0.7946</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Random_Forest</td>
+<td>0.3645</td>
+<td>5.69</td>
+<td>3.51</td>
+<td>0.7695</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Ridge_Baseline</td>
+<td>0.5396</td>
+<td>11.51</td>
+<td>5.83</td>
+<td>0.0565</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Meta do PRD Superada com Folga
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>O <strong>LightGBM</strong> consagrou-se como o modelo campeão, registrando <strong>RMSLE de 0.3397</strong>, superando confortavelmente o critério de sucesso estipulado no PRD (<span class="math inline">\(\text{RMSLE} \le 0.40\)</span>).</p>
+<p>O modelo alcançou erro absoluto médio (<strong>MAE</strong>) de <strong>3,25 minutos</strong> e coeficiente de determinação <strong><span class="math inline">\(R^2\)</span> de 0,7934</strong>, explicando quase 80% da variância do tempo de percurso em dados que o modelo nunca viu durante o treinamento. O XGBoost demonstrou desempenho quase idêntico (RMSLE 0.3425 e <span class="math inline">\(R^2\)</span> 0.7946), enquanto o modelo linear Ridge Baseline teve desempenho modesto (<span class="math inline">\(R^2\)</span> de apenas 5,6% e erro médio de 5,83 minutos), evidenciando que as interações espaciais e temporais no trânsito urbano são intensamente não-lineares.</p>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="share-interpretação-e-visualizações-diagnósticas" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="share-interpretação-e-visualizações-diagnósticas"><span class="header-section-number">5</span> Share (Interpretação e Visualizações Diagnósticas)</h2>
+<section id="importância-das-variáveis-por-ganho-gain" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="importância-das-variáveis-por-ganho-gain"><span class="header-section-number">5.1</span> Importância das Variáveis por Ganho (Gain)</h3>
+<p>Ao analisar a importância das variáveis por <strong>ganho de informação (Gain)</strong>, que quantifica a contribuição real de cada divisão na redução do erro logarítmico, a estrutura do modelo revela-se cristalina:</p>
+<div id="fig-importance" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/feature_importance.png" class="img-fluid figure-img" style="width:90.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1: Importância das Variáveis por Ganho Total (LightGBM Campeão)
+</figcaption>
+</figure>
+</div>
+<p>A <strong>distância Haversine</strong> (55,9%) e a <strong>distância Manhattan</strong> (17,0%) concentram conjuntamente <strong>72,9% de todo o ganho preditivo</strong> do modelo. Em seguida, a <strong>hora de embarque</strong> (<code>pickup_hour</code>, 5,9%), o <strong>ângulo de deslocamento</strong> (<code>bearing_deg</code>, 5,5%) e as <strong>coordenadas de desembarque e embarque</strong> refinam o cálculo da velocidade média esperada com base na direção do fluxo viário e no distrito de destino.</p>
+</section>
+<section id="qualidade-dos-resíduos-e-calibração-das-previsões" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="qualidade-dos-resíduos-e-calibração-das-previsões"><span class="header-section-number">5.2</span> Qualidade dos Resíduos e Calibração das Previsões</h3>
+<p>O alinhamento visual e a simetria de calibração das estimativas do modelo campeão são atestados no painel abaixo:</p>
+<div id="fig-residuals" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/residuals_and_calibration.png" class="img-fluid figure-img" style="width:95.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-residuals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2: Diagnóstico de Resíduos e Dispersão de Previsões no Conjunto de Validação Temporal
+</figcaption>
+</figure>
+</div>
+<p>No gráfico de resíduos (a), o erro mediano está centrado em zero, com desvios simétricos e 90% das viagens situando-se em uma janela de erro inferior a <span class="math inline">\(\pm 4\)</span> minutos. No gráfico de dispersão (b), a correlação entre a duração real e a prevista segue com precisão a reta identidade (<span class="math inline">\(y = x\)</span>) em toda a faixa de 0 a 90 minutos de viagem.</p>
+</section>
+<section id="impacto-das-condições-climáticas-no-trânsito" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="impacto-das-condições-climáticas-no-trânsito"><span class="header-section-number">5.3</span> Impacto das Condições Climáticas no Trânsito</h3>
+<p>O cruzamento das viagens com o histórico meteorológico diário confirma a hipótese H1:</p>
+<div id="fig-weather" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-weather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/weather_traffic_impact.png" class="img-fluid figure-img" style="width:90.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-weather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;3: Impacto das Condições Climáticas na Duração e Velocidade Média Aparente
+</figcaption>
+</figure>
+</div>
+<ul>
+<li>Em dias de clima seco normal, a velocidade média aparente situa-se em <strong>14,8 km/h</strong>.</li>
+<li>Em dias com precipitação chuvosa, a velocidade cai para <strong>13,9 km/h</strong> (redução moderada de -6,1%).</li>
+<li>Em dias com <strong>neve acumulada no solo</strong>, a velocidade média despenca para <strong>11,2 km/h</strong>, configurando uma <strong>queda crítica de -24,3%</strong> na fluidez viária e elevando o tempo médio de viagem em mais de 18%.</li>
+</ul>
+</section>
+<section id="dinâmica-temporal-e-horários-de-pico" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="dinâmica-temporal-e-horários-de-pico"><span class="header-section-number">5.4</span> Dinâmica Temporal e Horários de Pico</h3>
+<p>Respondendo à <strong>Questão 2</strong> da Seção 1.1, a distribuição horária da velocidade revela os gargalos estruturais do tráfego urbano em Nova York:</p>
+<div id="fig-heatmap" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/hourly_heatmap_speed.png" class="img-fluid figure-img" style="width:95.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;4: Mapa de Calor: Velocidade Média por Dia da Semana e Faixa Horária (km/h)
+</figcaption>
+</figure>
+</div>
+<p>O mapa de calor evidencia padrões nítidos: - <strong>Pico da Tarde em Dias Úteis (16h às 19h)</strong>: É o intervalo mais crítico de toda a semana. Às quintas e sextas-feiras por volta das 17h, a velocidade média cai para <strong>12,8 km/h a 13,1 km/h</strong>, gerando lentidão generalizada nas saídas de Manhattan. - <strong>Pico da Manhã (07h às 09h)</strong>: Concentra forte redução de velocidade em direção aos distritos financeiros e corporativos, com médias de 14 km/h a 16 km/h. - <strong>Madrugadas (03h às 05h)</strong>: Apresentam tráfego inteiramente desimpedido, atingindo velocidades médias de <strong>25 km/h a 27,6 km/h</strong>, mais que o dobro dos horários de pico. - <strong>Finais de Semana</strong>: Apresentam fluxo mais suave durante o dia (15 km/h a 18 km/h), sem os vales pronunciados de horário de pico observados de segunda a sexta.</p>
+</section>
+<section id="rotas-de-aeroportos-vs.-viagens-urbanas" class="level3" data-number="5.5">
+<h3 data-number="5.5" class="anchored" data-anchor-id="rotas-de-aeroportos-vs.-viagens-urbanas"><span class="header-section-number">5.5</span> Rotas de Aeroportos vs.&nbsp;Viagens Urbanas</h3>
+<p>Respondendo à <strong>Questão 3</strong> da Seção 1.1, comparamos o comportamento das viagens com destino aos aeroportos com as viagens urbanas centrais:</p>
+<div id="fig-airports" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-airports-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/airport_comparison.png" class="img-fluid figure-img" style="width:92.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-airports-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;5: Comparativo Operacional: Aeroportos JFK e LaGuardia vs.&nbsp;Rotas Urbanas Centrais
+</figcaption>
+</figure>
+</div>
+<p>As estatísticas comprovam que as viagens aeroportuárias seguem uma lógica de transporte inteiramente distinta das rotas urbanas típicas: - <strong>Aeroporto JFK</strong>: Distância média de 18,8 km, duração média de 42,7 minutos e velocidade média de <strong>29,1 km/h</strong> (mediana de 28,0 km/h). A velocidade média é <strong>111% superior (+15,3 km/h)</strong> à do tráfego urbano intramunicipal, impulsionada pelo tráfego em rodovias e vias expressas (Van Wyck Expressway). - <strong>Aeroporto LaGuardia (LGA)</strong>: Distância média de 9,7 km, duração média de 29,9 minutos e velocidade média de <strong>21,9 km/h</strong>. - <strong>Rotas Urbanas Intramunicipais</strong>: Distância média curta de 2,8 km, duração média de 12,5 minutos e velocidade média de apenas <strong>13,8 km/h</strong> (mediana de 12,4 km/h).</p>
+</section>
+<section id="análise-espacial-e-fator-de-circuidade-viária" class="level3" data-number="5.6">
+<h3 data-number="5.6" class="anchored" data-anchor-id="análise-espacial-e-fator-de-circuidade-viária"><span class="header-section-number">5.6</span> Análise Espacial e Fator de Circuidade Viária</h3>
+<p>A geometria urbana de Manhattan, traçada sob o <em>Commissioners’ Plan of 1811</em> em formato de grade ortogonal perfeita, impede deslocamentos diagonais em linha reta.</p>
+<p>Calculamos o <strong>fator de circuidade viária</strong>, definido pela razão entre a distância Manhattan e a distância geodésica em linha reta (<span class="math inline">\(\text{Circuidade} = d_{\text{manhattan}} / d_{\text{haversine}}\)</span>):</p>
+<div id="fig-circuity" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-circuity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/circuity_and_spatial_profile.png" class="img-fluid figure-img" style="width:80.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-circuity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;6: Distribuição do Fator de Circuidade Viária em Nova York
+</figcaption>
+</figure>
+</div>
+<p>A mediana observada do fator de circuidade é de <strong>1,326</strong> (média de 1,286). Isso significa que, devido à malha quadriculada de quarteirões e avenidas, os veículos em Nova York percorrem na prática <strong>cerca de 33% a mais de distância física</strong> do que a linha reta geodésica entre a origem e o destino. Essa constatação explica por que o atributo <code>dist_manhattan_km</code> é tão decisivo para a capacidade preditiva do modelo.</p>
+<hr>
+</section>
+</section>
+<section id="act-recomendações-práticas-e-aplicação-operacional" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="act-recomendações-práticas-e-aplicação-operacional"><span class="header-section-number">6</span> Act (Recomendações Práticas e Aplicação Operacional)</h2>
+<p>Com base no diagnóstico estatístico e nas predições do modelo LightGBM, formulam-se três diretrizes práticas para operadores de frota e órgãos de trânsito:</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Aviso</span>Alocação Preventiva de Frota em Dias com Neve no Solo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A constatação empírica de que a neve acumulada reduz a velocidade média em <strong>-24,3%</strong> e eleva a duração das viagens em mais de <strong>18%</strong> exige recalibração de despacho. Como os veículos passam mais tempo retidos em cada percurso, a capacidade de atendimento da frota diminui proporcionalmente em cerca de 20%. Recomenda-se que operadores de aplicativos e frotas de táxi acionem estímulos tarifários prévios para reter motoristas nas áreas centrais durante alertas meteorológicos de nevasca.</p>
+</div>
+</div>
+<section id="desvio-estratégico-das-avenidas-centrais-nos-picos-da-tarde" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="desvio-estratégico-das-avenidas-centrais-nos-picos-da-tarde"><span class="header-section-number">6.1</span> Desvio Estratégico das Avenidas Centrais nos Picos da Tarde</h3>
+<p>O mapa de calor demonstrou que as quintas e sextas-feiras entre 16h e 19h registram as menores velocidades médias de toda a rede urbana (12,8 km/h). Os sistemas de roteamento devem priorizar desvios precoces pelas vias marginais de Manhattan (FDR Drive a leste e West Side Highway a oeste) para deslocamentos norte-sul transversais, evitando a sobrecarga das avenidas comerciais da ilha.</p>
+</section>
+<section id="janelas-de-margem-de-segurança-para-aeroportos" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="janelas-de-margem-de-segurança-para-aeroportos"><span class="header-section-number">6.2</span> Janelas de Margem de Segurança para Aeroportos</h3>
+<p>Embora as viagens para o JFK alcancem velocidade média alta (29,1 km/h), elas percorrem em média 18,8 km e dependem de rodovias sujeitas a gargalos súbitos. A variância do percurso atinge desvios consideráveis nos horários de pico. Recomenda-se adicionar uma margem de segurança de <strong>30 a 45 minutos</strong> ao tempo de partida sugerido aos passageiros em dias úteis durante o pico da tarde ou em condições de chuva e neve.</p>
+<hr>
+</section>
+</section>
+<section id="reprodutibilidade-e-artefatos-finais" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="reprodutibilidade-e-artefatos-finais"><span class="header-section-number">7</span> Reprodutibilidade e Artefatos Finais</h2>
+<ul>
+<li><strong>Código Modular</strong>: Scripts disponíveis no diretório <code>src/</code> (<code>data_prep.py</code>, <code>features.py</code>, <code>train.py</code>, <code>evaluate.py</code>, <code>utils.py</code>).</li>
+<li><strong>Arquivo de Submissão</strong>: Previsões para as 47.999 viagens do conjunto de teste salvas em <code>data/processed/submission.csv</code>.</li>
+<li><strong>Publicação Automatizada</strong>: O site deste relatório é compilado pelo Quarto e publicado no GitHub Pages pelo workflow <code>.github/workflows/deploy-report.yml</code>.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
