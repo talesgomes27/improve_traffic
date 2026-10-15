@@ -8,17 +8,32 @@ import numpy as np
 
 from src.utils import haversine_distance, manhattan_distance, calculate_bearing
 
+# Constantes de Domínio Geográfico e Operacional
+JFK_BBOX = {"lon_min": -73.82, "lon_max": -73.76, "lat_min": 40.63, "lat_max": 40.66}
+LGA_BBOX = {"lon_min": -73.89, "lon_max": -73.85, "lat_min": 40.76, "lat_max": 40.79}
+
+# Faixas de Horário de Pico Comercial (Dias Úteis)
+MORNING_RUSH_START, MORNING_RUSH_END = 7, 9
+EVENING_RUSH_START, EVENING_RUSH_END = 16, 19
+
+# Limiares de Clima Severo
+SEVERE_PRECIP_MM = 5.0
+SEVERE_SNOW_FALL_MM = 25.0
+SEVERE_SNOW_DEPTH_MM = 50.0
+
 
 def is_within_bbox(
     lons: np.ndarray,
     lats: np.ndarray,
-    lon_min: float,
-    lon_max: float,
-    lat_min: float,
-    lat_max: float,
+    bbox: dict[str, float],
 ) -> np.ndarray:
     """Verifica se coordenadas pertencem a um retângulo geográfico delimitado."""
-    return (lons >= lon_min) & (lons <= lon_max) & (lats >= lat_min) & (lats <= lat_max)
+    return (
+        (lons >= bbox["lon_min"])
+        & (lons <= bbox["lon_max"])
+        & (lats >= bbox["lat_min"])
+        & (lats <= bbox["lat_max"])
+    )
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -36,14 +51,12 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     out["bearing_deg"] = calculate_bearing(p_lon, p_lat, d_lon, d_lat)
 
     # Indicadores binários de aeroportos
-    # JFK: lat [40.63, 40.66], lon [-73.82, -73.76]
-    jfk_pickup = is_within_bbox(p_lon, p_lat, -73.82, -73.76, 40.63, 40.66)
-    jfk_dropoff = is_within_bbox(d_lon, d_lat, -73.82, -73.76, 40.63, 40.66)
+    jfk_pickup = is_within_bbox(p_lon, p_lat, JFK_BBOX)
+    jfk_dropoff = is_within_bbox(d_lon, d_lat, JFK_BBOX)
     out["is_jfk"] = (jfk_pickup | jfk_dropoff).astype(int)
 
-    # LGA: lat [40.76, 40.79], lon [-73.89, -73.85]
-    lga_pickup = is_within_bbox(p_lon, p_lat, -73.89, -73.85, 40.76, 40.79)
-    lga_dropoff = is_within_bbox(d_lon, d_lat, -73.89, -73.85, 40.76, 40.79)
+    lga_pickup = is_within_bbox(p_lon, p_lat, LGA_BBOX)
+    lga_dropoff = is_within_bbox(d_lon, d_lat, LGA_BBOX)
     out["is_lga"] = (lga_pickup | lga_dropoff).astype(int)
 
     # 2. Atributos Temporais e de Tráfego
@@ -55,19 +68,23 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # Picos comerciais (apenas dias úteis)
     is_weekday = out["is_weekend"] == 0
-    out["is_morning_rush"] = (is_weekday & out["pickup_hour"].between(7, 9)).astype(int)
-    out["is_evening_rush"] = (is_weekday & out["pickup_hour"].between(16, 19)).astype(int)
+    out["is_morning_rush"] = (
+        is_weekday & out["pickup_hour"].between(MORNING_RUSH_START, MORNING_RUSH_END)
+    ).astype(int)
+    out["is_evening_rush"] = (
+        is_weekday & out["pickup_hour"].between(EVENING_RUSH_START, EVENING_RUSH_END)
+    ).astype(int)
 
     # 3. Interações Climáticas
     out["is_rainy"] = (out["precipitation_mm"] > 0.0).astype(int)
     out["has_snow_fall"] = (out["snow_fall_mm"] > 0.0).astype(int)
     out["has_snow_ground"] = (out["snow_depth_mm"] > 0.0).astype(int)
 
-    # Clima severo: chuva forte (>= 5mm) ou neve substancial
+    # Clima severo: chuva forte ou neve substancial
     out["is_severe_weather"] = (
-        (out["precipitation_mm"] >= 5.0)
-        | (out["snow_fall_mm"] >= 25.0)
-        | (out["snow_depth_mm"] >= 50.0)
+        (out["precipitation_mm"] >= SEVERE_PRECIP_MM)
+        | (out["snow_fall_mm"] >= SEVERE_SNOW_FALL_MM)
+        | (out["snow_depth_mm"] >= SEVERE_SNOW_DEPTH_MM)
     ).astype(int)
 
     # 4. Codificação de Flags

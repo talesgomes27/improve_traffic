@@ -5,6 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import argparse
 import joblib
 import json
+import shutil
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -240,15 +241,15 @@ def plot_weather_impact_enhanced(train_df: pd.DataFrame, out_file: Path):
     df["speed_kmh"] = df["dist_haversine_km"] / (df["trip_duration"] / 3600.0)
     df = df[(df["speed_kmh"] > 1.0) & (df["speed_kmh"] < 100.0)]
 
-    conditions = []
-    for _, row in df.iterrows():
-        if row["snow_depth_mm"] > 0:
-            conditions.append("Neve no Solo")
-        elif row["is_rainy"] == 1:
-            conditions.append("Com Chuva")
-        else:
-            conditions.append("Seco / Normal")
-    df["condition"] = conditions
+    cond_weather = [
+        df["snow_depth_mm"] > 0,
+        df["is_rainy"] == 1,
+    ]
+    choices_weather = [
+        "Neve no Solo",
+        "Com Chuva",
+    ]
+    df["condition"] = np.select(cond_weather, choices_weather, default="Seco / Normal")
 
     order = ["Seco / Normal", "Com Chuva", "Neve no Solo"]
 
@@ -351,14 +352,15 @@ def plot_airport_vs_urban(df: pd.DataFrame, out_file: Path):
     data["speed_kmh"] = data["dist_haversine_km"] / (data["trip_duration"] / 3600.0)
     data = data[(data["speed_kmh"] > 1.0) & (data["speed_kmh"] < 100.0)]
 
-    def classify_route(row):
-        if row["is_jfk"] == 1:
-            return "Aeroporto JFK"
-        elif row["is_lga"] == 1:
-            return "Aeroporto LaGuardia (LGA)"
-        return "Rotas Urbanas Centrais"
-
-    data["route_type"] = data.apply(classify_route, axis=1)
+    cond_routes = [
+        data["is_jfk"] == 1,
+        data["is_lga"] == 1,
+    ]
+    choices_routes = [
+        "Aeroporto JFK",
+        "Aeroporto LaGuardia (LGA)",
+    ]
+    data["route_type"] = np.select(cond_routes, choices_routes, default="Rotas Urbanas Centrais")
     order = ["Rotas Urbanas Centrais", "Aeroporto LaGuardia (LGA)", "Aeroporto JFK"]
 
     stats = data.groupby("route_type").agg(
@@ -512,6 +514,13 @@ def main():
     plot_airport_vs_urban(train_full, figures_path / "airport_comparison.png")
     plot_spatial_circuity(train_full, figures_path / "circuity_and_spatial_profile.png")
     print(f"Todas as figuras salvas com sucesso em {figures_path}")
+
+    # Sincronização automática para o relatório Quarto (report/figures/)
+    report_figures_path = Path("report/figures")
+    if report_figures_path.exists():
+        for fig_path in figures_path.glob("*.png"):
+            shutil.copy(fig_path, report_figures_path / fig_path.name)
+        print(f"Figuras sincronizadas com sucesso em {report_figures_path}")
 
     # 3. Exportação de tabela de métricas comparativas com todas as 4 métricas
     all_metrics = bundle.get("all_metrics", {})

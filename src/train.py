@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
 from lightgbm import LGBMRegressor
 from xgboost import XGBRegressor
 
@@ -41,9 +42,6 @@ def get_feature_columns(df: pd.DataFrame) -> list[str]:
     }
     cols = [c for c in df.columns if c not in excluded]
     return sorted(cols)
-
-
-from sklearn.metrics import r2_score
 
 
 def evaluate_predictions(y_true_sec: np.ndarray, y_pred_log: np.ndarray) -> dict[str, float]:
