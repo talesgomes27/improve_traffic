@@ -2,6 +2,9 @@ project:
   type: site
   output-dir: _site
 
+execute:
+  freeze: auto
+
 website:
   title: "NYC Traffic & Weather Analytics"
   navbar:

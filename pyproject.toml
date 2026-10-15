@@ -1,6 +1,6 @@
 [project]
 name = "improve-traffic"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pipeline preditivo de tráfego e duração de viagens em Nova York com dados meteorológicos de 2016"
 authors = [
     { name = "Tales" }

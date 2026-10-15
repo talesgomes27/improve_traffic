@@ -148,7 +148,7 @@ O modelo alcançou erro absoluto médio (**MAE**) de **3,25 minutos** e coeficie
 
 ### Importância das Variáveis por Ganho (Gain)
 
-Ao analisar a importância das variáveis por **ganho de informação (Gain)**, que quantifica a contribuição real de cada divisão na redução do erro logarítmico, a estrutura do modelo revela-se cristalina:
+A distribuição da importância por **ganho de informação (Gain)** quantifica a contribuição de cada divisão na redução do erro logarítmico:
 
 ![Importância das Variáveis por Ganho Total (LightGBM Campeão)](figures/feature_importance.png){#fig-importance width=90%}
 
@@ -156,7 +156,7 @@ A **distância Haversine** (55,9%) e a **distância Manhattan** (17,0%) concentr
 
 ### Qualidade dos Resíduos e Calibração das Previsões
 
-O alinhamento visual e a simetria de calibração das estimativas do modelo campeão são atestados no painel abaixo:
+O diagnóstico de calibração e a dispersão das previsões do modelo campeão são apresentados no painel abaixo:
 
 ![Diagnóstico de Resíduos e Dispersão de Previsões no Conjunto de Validação Temporal](figures/residuals_and_calibration.png){#fig-residuals width=95%}
 
