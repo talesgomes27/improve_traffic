@@ -8,7 +8,7 @@ execute:
 website:
   title: "NYC Traffic & Weather Analytics"
   navbar:
-    background: primary
+    background: "#0f172a"
     left:
       - href: index.qmd
         text: Relatório Executivo e Técnico
