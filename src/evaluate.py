@@ -375,7 +375,7 @@ def plot_airport_vs_urban(df: pd.DataFrame, out_file: Path):
 
     # Painel 1: Velocidade Média (km/h)
     bars1 = ax1.bar(stats.index, stats["speed_mean"], color=colors, width=0.55)
-    ax1.set_ylim(0, 36)
+    ax1.set_ylim(0, 38)
     ax1.set_title("Velocidade Média por Destino / Rota", fontsize=12, fontweight="bold")
     ax1.set_ylabel("Velocidade Média (km/h)", fontsize=11)
     ax1.grid(True, axis="y", alpha=0.5)
@@ -387,9 +387,14 @@ def plot_airport_vs_urban(df: pd.DataFrame, out_file: Path):
 
     ax1.annotate(
         "JFK: Mais que o dobro da velocidade\nurbana (+111% em vias expressas)",
-        xy=(2, stats.loc["Aeroporto JFK", "speed_mean"]),
-        xytext=(0.8, 30.5),
-        arrowprops=dict(arrowstyle="->", color="#0d9488", lw=1.5),
+        xy=(1.725, 25.0),
+        xytext=(0.05, 29.0),
+        arrowprops=dict(
+            arrowstyle="->",
+            color="#0d9488",
+            lw=1.5,
+            connectionstyle="arc3,rad=-0.1",
+        ),
         fontsize=9,
         fontweight="bold",
         color="#0d9488",
